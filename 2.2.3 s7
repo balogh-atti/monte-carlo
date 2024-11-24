@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def monte_carlo_triangle_probability(simulations=100000):
+    """
+    Monte Carlo szimuláció annak a valószínűségnek a kiszámítására,
+    hogy egy egységnyi szakasz véletlenszerű pontokkal három részre bontva háromszöget alkot.
+
+    :param simulations: A szimulációk száma.
+    :return: Háromszög szerkeszthetőség valószínűsége.
+    """
+    valid_triangles = 0
+
+    for _ in range(simulations):
+        # Két véletlenszerű pont kiválasztása az [0, 1] intervallumból
+        points = np.sort(np.random.uniform(0, 1, 2))
+        a = points[0]
+        b = points[1] - points[0]
+        c = 1 - points[1]
+
+        # Háromszög-egyenlőtlenség ellenőrzése
+        if a + b > c and a + c > b and b + c > a:
+            valid_triangles += 1
+
+    return valid_triangles / simulations
+
+
+# Monte Carlo szimuláció futtatása
+simulations = 100000
+triangle_probability = monte_carlo_triangle_probability(simulations)
+
+# Eredmény megjelenítése
+print(f"A háromszög szerkeszthetőség valószínűsége: {triangle_probability:.4f}")
+
+# Adatok gyűjtése a grafikonhoz
+data_points = np.array([np.sort(np.random.uniform(0, 1, 2)) for _ in range(simulations)])
+segment_lengths = np.column_stack((data_points[:, 0],
+                                   data_points[:, 1] - data_points[:, 0],
+                                   1 - data_points[:, 1]))
+valid_segments = [a + b > c and a + c > b and b + c > a for a, b, c in segment_lengths]
+
+# Grafikon készítése
+plt.figure(figsize=(8, 5))
+plt.hist([sum(segments) for segments, valid in zip(segment_lengths, valid_segments) if valid],
+         bins=30, alpha=0.7, label="Érvényes háromszögek", color="skyblue", edgecolor="black")
+plt.xlabel("Háromszög szakaszhosszak összege")
+plt.ylabel("Relatív gyakoriság")
+plt.title("Háromszög szerkeszthetőségének szimulációja")
+plt.legend()
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
