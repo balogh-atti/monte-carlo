@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def monte_carlo_no_wait_probability(open_time=8, close_time=20, load_time=57, simulations=100000):
+    """
+    Monte Carlo szimuláció annak valószínűségének kiszámítására, hogy két hajó nem vár egymásra.
+
+    :param open_time: A kikötő nyitásának ideje órában.
+    :param close_time: A kikötő zárásának ideje órában.
+    :param load_time: Egy hajó rakodási ideje percben.
+    :param simulations: Szimulációk száma.
+    :return: Annak a valószínűsége, hogy a két hajó nem kell várjon egymásra, és a szimulált érkezési idők.
+    """
+    total_no_wait = 0
+    total_time_minutes = (close_time - open_time) * 60  # Nyitvatartási idő percben
+    arrival_differences = []
+
+    for _ in range(simulations):
+        # Két hajó érkezési ideje véletlenszerűen az adott időintervallumban
+        arrival_1 = np.random.uniform(0, total_time_minutes)  # Első hajó érkezési ideje
+        arrival_2 = np.random.uniform(0, total_time_minutes)  # Második hajó érkezési ideje
+
+        # Rendezés az érkezési idő szerint
+        arrival_early, arrival_late = sorted([arrival_1, arrival_2])
+
+        # Különbség rögzítése
+        arrival_differences.append(arrival_late - arrival_early)
+
+        # Ellenőrzés, hogy van-e átfedés
+        if arrival_early + load_time <= arrival_late:
+            total_no_wait += 1
+
+    # Valószínűség kiszámítása
+    probability = total_no_wait / simulations
+    return probability, arrival_differences
+
+
+# Paraméterek
+open_time = 8  # Óra
+close_time = 20  # Óra
+load_time = 57  # Perc
+simulations = 100000
+
+# Monte Carlo szimuláció futtatása
+no_wait_probability, arrival_differences = monte_carlo_no_wait_probability(open_time, close_time, load_time,
+                                                                           simulations)
+
+# Eredmény kiírása
+print(f"Annak valószínűsége, hogy a két hajónak nem kell várnia egymásra: {no_wait_probability:.4f}")
+
+# Grafikon készítése
+plt.figure(figsize=(8, 5))
+plt.hist(arrival_differences, bins=50, alpha=0.7, color="skyblue", edgecolor="black")
+plt.axvline(load_time, color='red', linestyle='--', label=f"Rakodási idő ({load_time} perc)")
+plt.xlabel("Két hajó érkezése közötti idő (perc)")
+plt.ylabel("Relatív gyakoriság")
+plt.title("Hajók érkezési idő különbségének eloszlása")
+plt.legend()
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
